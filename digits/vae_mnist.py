@@ -6,7 +6,7 @@ from torch.optim import Adam
 
 import matplotlib.pyplot as plt
 import numpy as np
-from digits.config_mnist import device, BATCH_SIZE, LEARNING_RATE, latent_dim
+from config_mnist import device, BATCH_SIZE, LEARNING_RATE, latent_dim
 
 
 class VariationalAutoencoder(nn.Module):
