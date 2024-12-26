@@ -50,12 +50,12 @@ class VariationalAutoencoder(nn.Module):
         return self.decode(z), mu, log_var
 
 
-def loss_function(recon_x, x, mu, log_var):
-    BCE = F.binary_cross_entropy(recon_x, x.view(-1, 784), reduction='sum')
-    KLD = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
+def loss_function(recon_x, x, mu, log_var, flag_bce=True, flag_kld=True):
+    BCE = flag_bce * F.binary_cross_entropy(recon_x, x.view(-1, 784), reduction='sum')
+    KLD = flag_kld * -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
     return BCE + KLD
 
-def train(model, data_loader):
+def train(model, data_loader, flag_bce=True, flag_kld=True):
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
     model.train()  
@@ -65,7 +65,7 @@ def train(model, data_loader):
         data = data.to(device)  
         optimizer.zero_grad()  # Zero out gradients before backpropagation
         recon_batch, mu, log_var = model(data)  # Forward pass
-        loss = loss_function(recon_batch, data, mu, log_var)  
+        loss = loss_function(recon_batch, data, mu, log_var, flag_bce=flag_bce, flag_kld=flag_kld)  
         loss.backward()  # Backpropagation
         train_loss += loss.item()  # Sum up batch loss
         optimizer.step()  # Update model parameters
