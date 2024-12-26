@@ -21,8 +21,8 @@ class VariationalAutoencoder(nn.Module):
         )
 
         # Mean and log variance layers
-        self.fc_mu = nn.Linear(40, 20)
-        self.fc_log_var = nn.Linear(40, 20)
+        self.fc_mu = nn.Linear(40, latent_dim)
+        self.fc_log_var = nn.Linear(40, latent_dim)
 
         # Decoder part
         self.decoder = nn.Sequential(

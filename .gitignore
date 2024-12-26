@@ -163,3 +163,5 @@ cython_debug/
 first_word.npy
 
 *.pdf
+Cat-faces-dataset/
+data/
