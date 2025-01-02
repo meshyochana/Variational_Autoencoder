@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VAE Digit Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        .z-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .z-cell-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .z-cell {
+            writing-mode: bt-lr; /* Vertical alignment */
+            height: 100px; /* Keep height smaller since it's now vertical */
+            transform: rotate(180deg); /* Rotate to make it vertical for all browsers */
+            margin-bottom: 10px;
+        }
+        .z-value {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        #output-img {
+            margin-top: 20px;
+            width: 500px; /* Image width */
+            height: 500px; /* Image height */
+        }
+    </style>
+</head>
+<body>
+    <h1>VAE Digit Generator</h1>
+    <div class="z-container" id="z-container"></div>
+    <button onclick="generate()">Generate Digit</button>
+    <div id="output">
+        <h2>Generated Digit</h2>
+        <img id="output-img" src="" alt="Generated Image">
+    </div>
+
+    <script>
+        const zContainer = document.getElementById('z-container');
+        const zCells = [];
+        const zValues = [];
+        const zSize = 20; // Dimension of latent space
+
+        // Create 20 range sliders with value displays
+        for (let i = 0; i < zSize; i++) {
+            const cellContainer = document.createElement('div');
+            cellContainer.className = 'z-cell-container';
+        
+            // Create the range slider
+            const input = document.createElement('input');
+            input.type = 'range';
+            input.className = 'z-cell';
+            input.min = -1;   // Minimum value
+            input.max = 1;   // Maximum value
+            input.step = 0.01; // Step for finer control
+            input.value = 0; // Default value at the midpoint
+            cellContainer.appendChild(input);
+        
+            // Create a label to display the value
+            const valueLabel = document.createElement('div');
+            valueLabel.className = 'z-value';
+            valueLabel.textContent = input.value; // Initialize with default value
+            cellContainer.appendChild(valueLabel);
+        
+            // Update value dynamically as the slider moves
+            input.addEventListener('input', () => {
+                valueLabel.textContent = input.value;
+            });
+        
+            zContainer.appendChild(cellContainer);
+            zCells.push(input); // Store sliders for later use
+            zValues.push(valueLabel); // Store value labels for debugging or updates
+        }
+
+        // Function to collect z values and send to the backend
+        async function generate() {
+            // Get z values from sliders
+            const z = zCells.map(cell => parseFloat(cell.value) || 0);
+        
+            // Send z to backend and fetch generated image
+            const response = await fetch('http://localhost:5000/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ z }),
+            });
+        
+            const data = await response.json();
+        
+            if (data.error) {
+                alert(`Error: ${data.error}`);
+                return;
+            }
+        
+            // Display the generated image
+            const outputImg = document.getElementById('output-img');
+            outputImg.src = `data:image/png;base64,${data.image}`;
+        }
+    </script>
+</body>
+</html>
