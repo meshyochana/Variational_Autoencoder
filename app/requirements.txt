@@ -1,6 +1,8 @@
 flask==3.1.0
 flask-cors==5.0.0
-torch==2.5.1
-torchvision==0.20.1
 numpy==1.26.0
 matplotlib==3.7.1
+torch==2.5.1
+torchvision==0.20.1
+
+# To install pytorch run this Command: pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
