@@ -72,7 +72,7 @@ function App() {
           </button>
         ))}
         <button onClick={setRandom} className="random-button">
-          Ser Random Digit
+          Set Random Digit
         </button>
       </div>
 
@@ -99,7 +99,6 @@ function App() {
 
       {image && (
         <div className="output">
-          <h2>Generated Digit</h2>
           <img src={image} alt="Generated Digit" className="output-image" />
         </div>
       )}
