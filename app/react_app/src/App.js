@@ -27,7 +27,7 @@ function App() {
   };
 
   const setRandom = () => {
-    const randomZ = Array.from({ length: 20 }, () => (Math.random() * 2 - 1).toFixed(2));
+    const randomZ = Array.from({ length: 20 }, () => (Math.random() * 4 - 2).toFixed(2));
     setZ(randomZ.map(Number));
   };
 
@@ -81,8 +81,8 @@ function App() {
           <div key={index} className="slider-container">
             <input
               type="range"
-              min="-1"
-              max="1"
+              min="-2.5"
+              max="2.5"
               step="0.01"
               value={value}
               onChange={(e) => updateZ(index, e.target.value)}
