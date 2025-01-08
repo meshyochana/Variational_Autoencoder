@@ -72,7 +72,7 @@ function App() {
           </button>
         ))}
         <button onClick={setRandom} className="random-button">
-          Set Random Digit
+          Set Random Values
         </button>
       </div>
 

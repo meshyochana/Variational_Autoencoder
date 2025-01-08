@@ -88,7 +88,6 @@
 
     .slider {
       width: 100px; /* Reduce slider width */
-      -webkit-appearance: none;
       background: #4fc3f7;
       height: 6px;
       border-radius: 5px;
@@ -143,7 +142,7 @@
     <button class="digit-button" onclick="setPreset(9)">Set 9</button>
 
     <!-- Random Button -->
-    <button class="random-button" onclick="setRandom()">Set Random Digit</button>
+    <button class="random-button" onclick="setRandom()">Set Random Values</button>
   </div>
 
   <div class="sliders" id="sliders-container">
@@ -153,7 +152,6 @@
   <button class="generate-button" onclick="generateDigit()">Generate Digit</button>
 
   <div class="output" id="output">
-    <h2>Generated Digit</h2>
     <img id="output-image" class="output-image" alt="Generated Digit">
   </div>
 
