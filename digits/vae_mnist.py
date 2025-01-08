@@ -110,7 +110,8 @@ def plot_loss(losses):
     plt.show()
 
 def plot_digits_and_latents(latents, digits, plot_samples=5):
-    fig, axes = plt.subplots(nrows=2, ncols=plot_samples, figsize=(10, 4))
+    plt.close('all')
+    fig, axes = plt.subplots(nrows=2, ncols=plot_samples, figsize=(20, 8))
 
     for i in range(plot_samples):
         ax = axes[0, i]
