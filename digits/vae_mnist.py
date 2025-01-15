@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from config_mnist import device, BATCH_SIZE, LEARNING_RATE, latent_dim
 
+print(latent_dim)
 
 class VariationalAutoencoder(nn.Module):
     def __init__(self):
@@ -26,7 +27,7 @@ class VariationalAutoencoder(nn.Module):
 
         # Decoder part
         self.decoder = nn.Sequential(
-            nn.Linear(20, 400),
+            nn.Linear(latent_dim, 400),
             nn.ReLU(),
             nn.Linear(400, 784),
             nn.Sigmoid()  # Ensuring output is between 0 and 1
@@ -111,7 +112,7 @@ def plot_loss(losses):
 
 def plot_digits_and_latents(latents, digits, plot_samples=5):
     plt.close('all')
-    fig, axes = plt.subplots(nrows=2, ncols=plot_samples, figsize=(20, 8))
+    fig, axes = plt.subplots(nrows=2, ncols=plot_samples, figsize=(10, 5))
 
     for i in range(plot_samples):
         ax = axes[0, i]
@@ -119,7 +120,7 @@ def plot_digits_and_latents(latents, digits, plot_samples=5):
         ax.axis('off')
 
         ax = axes[1, i]
-        ax.bar(range(20), latents[i].cpu().numpy()) 
+        ax.bar(range(latent_dim), latents[i].cpu().numpy()) 
         ax.set_ylim([latents.min(), latents.max()])
     axes[0, 2].set_title("Digits")
     axes[1, 2].set_title("Latent representations")

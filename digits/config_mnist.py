@@ -10,4 +10,4 @@ LEARNING_RATE = 0.001
 EPOCHS = 10
 
 # Model parameters
-latent_dim = 20
+latent_dim = 5
