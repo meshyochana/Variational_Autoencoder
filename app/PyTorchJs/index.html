@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VAE Digit Generator</title>
+  <style>
+    /* Add styling here to match your design */
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #e3f2fd;
+      color: #01579b;
+      padding: 20px;
+    }
+    .sliders {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .slider-container {
+      margin: 5px;
+    }
+    .slider {
+      width: 150px;
+    }
+    canvas {
+      border: 1px solid #0288d1;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>VAE Digit Generator</h1>
+  <div class="sliders" id="sliders-container"></div>
+  <button onclick="generateDigit()">Generate Digit</button>
+  <canvas id="outputCanvas" width="280" height="280"></canvas>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-pytorch/0.7.2/js-pytorch-browser.js"
+        integrity="sha512-l22t7GnqXvHBMCBvPUBdFO2TEYxnb1ziCGcDQcpTB2un16IPA4FE5SIZ8bUR+RwoDZGikQkWisO+fhnakXt9rg=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+  <script src="app.js"></script>
+</body>
+</html>

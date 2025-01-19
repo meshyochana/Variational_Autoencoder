@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VAE Decoder (ONNX.js)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f1f8ff;
+      color: #01579b;
+      margin: 0;
+      padding: 20px;
+    }
+    .sliders {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .slider-container {
+      margin: 5px;
+    }
+    .slider {
+      width: 100px;
+    }
+    canvas {
+      border: 1px solid #0288d1;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    button {
+      background-color: #0288d1;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #0277bd;
+    }
+  </style>
+</head>
+<body>
+  <h1>VAE Decoder (ONNX.js)</h1>
+  <div class="sliders" id="sliders-container"></div>
+  <button onclick="generateDigit()">Generate Digit</button>
+  <canvas id="outputCanvas" width="28" height="28"></canvas>
+  <script src="https://cdn.jsdelivr.net/npm/onnxjs/dist/onnx.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
