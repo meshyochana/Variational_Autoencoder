@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VAE Digit Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: linear-gradient(to bottom, #e0f7fa, #b3e5fc);
+      margin: 0;
+      padding: 10px;
+      color: #01579b;
+    }
+    h1 {
+      font-size: 1.8em;
+      color: #0288d1;
+      margin-bottom: 15px;
+    }
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+    }
+    .canvas-container, .output {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    canvas {
+      border: 2px solid #0288d1;
+      background-color: white;
+      cursor: crosshair;
+    }
+    .generate-button {
+      background-color: #ffb74d;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 20px;
+      margin-top: 15px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s ease;
+    }
+    .generate-button:hover {
+      background-color: #0277bd;
+    }
+    .output-image {
+      width: 200px;
+      height: 200px;
+      margin-top: 5px;
+      border: 2px solid #0288d1;
+      border-radius: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>VAE Digit Generator</h1>
+  <div class="container">
+    <div class="canvas-container">
+      <h2>Latent Space (dim=2)</h2>
+      <canvas id="latent-space" width="300" height="300"></canvas>
+    </div>
+    <div class="output" id="output">
+      <img id="output-image" class="output-image" alt="Generated Digit">
+      <button class="generate-button" onclick="generateDigit()">Generate Digit</button>
+    </div>
+  </div>
+  <script>
+    const canvas = document.getElementById("latent-space");
+    const ctx = canvas.getContext("2d");
+    let latentPoint = { x: 150, y: 150 };
+    
+    function drawCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = "#ddd";
+      for (let i = 0; i <= 300; i += 30) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, 300);
+        ctx.moveTo(0, i);
+        ctx.lineTo(300, i);
+        ctx.stroke();
+      }
+      
+      ctx.strokeStyle = "#0288d1";
+      ctx.beginPath();
+      ctx.moveTo(150, 0);
+      ctx.lineTo(150, 300);
+      ctx.moveTo(0, 150);
+      ctx.lineTo(300, 150);
+      ctx.stroke();
+      
+      ctx.font = "16px serif";
+      ctx.fillStyle = "black";
+      ctx.fillText("z₁", 280, 140);
+      ctx.fillText("z₂", 160, 20);
+      
+      for (let i of [-2, -1, 1, 2]) {
+        let x = 150 + i * 60;
+        let y = 150 - i * 60;
+        ctx.fillText(i.toFixed(1), x, 165);
+        ctx.fillText(i.toFixed(1), 135, y);
+      }
+      
+      ctx.beginPath();
+      ctx.globalAlpha = 0.7;
+      ctx.arc(latentPoint.x, latentPoint.y, 8, 0, Math.PI * 2);
+      ctx.fillStyle = "red";
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+      ctx.fill();
+      ctx.globalAlpha = 1.0;
+      ctx.stroke();
+      
+      const values = getLatentValues(latentPoint.x, latentPoint.y);
+      ctx.fillStyle = "black";
+      ctx.fillText(`(${values[0].toFixed(2)}, ${values[1].toFixed(2)})`, latentPoint.x + 10, latentPoint.y - 10);
+    }
+    
+    function getLatentValues(x, y) {
+      return [(x - 150) / 75, (150 - y) / 75];
+    }
+    
+    canvas.addEventListener("mousedown", (event) => {
+      function movePoint(e) {
+        latentPoint.x = Math.min(300, Math.max(0, e.offsetX));
+        latentPoint.y = Math.min(300, Math.max(0, e.offsetY));
+        drawCanvas();
+      }
+      
+      movePoint(event);
+      canvas.addEventListener("mousemove", movePoint);
+      document.addEventListener("mouseup", () => {
+        canvas.removeEventListener("mousemove", movePoint);
+      }, { once: true });
+    });
+    
+    async function generateDigit() {
+      const z = getLatentValues(latentPoint.x, latentPoint.y);
+      try {
+        const response = await fetch("http://localhost:5000/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ z }),
+        });
+        const data = await response.json();
+        if (data.image) {
+          const outputImage = document.getElementById("output-image");
+          outputImage.src = `data:image/png;base64,${data.image}`;
+          outputImage.style.display = "block";
+        }
+      } catch (error) {
+        console.error("Error generating digit:", error);
+      }
+    }
+    
+    drawCanvas();
+  </script>
+</body>
+</html>

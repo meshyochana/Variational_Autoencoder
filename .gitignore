@@ -165,3 +165,7 @@ first_word.npy
 *.pdf
 Cat-faces-dataset/
 data/
+npy/
+external/
+XXX/
+Backup from server/

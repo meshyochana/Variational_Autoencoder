@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from config_mnist import device, BATCH_SIZE, LEARNING_RATE, latent_dim
 
-print(latent_dim)
+print("latent dim = ", latent_dim)
 
 class VariationalAutoencoder(nn.Module):
     def __init__(self):
@@ -99,6 +99,7 @@ def generate_new_digits(model, num_samples):
         # Sample random points in the latent space
         z = torch.randn(num_samples, latent_dim).to(device)
         # Generate digits from the latent vectors
+        print(z.shape)
         generated_digits = model.decoder(z)
     return z, generated_digits
 
@@ -111,8 +112,7 @@ def plot_loss(losses):
     plt.show()
 
 def plot_digits_and_latents(latents, digits, plot_samples=5):
-    plt.close('all')
-    fig, axes = plt.subplots(nrows=2, ncols=plot_samples, figsize=(10, 5))
+    fig, axes = plt.subplots(nrows=2, ncols=plot_samples, figsize=(10, 4))
 
     for i in range(plot_samples):
         ax = axes[0, i]

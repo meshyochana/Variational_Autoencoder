@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VAE Digit Generator</title>
+  <style>
+    /* General Styles */
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: linear-gradient(to bottom, #e0f7fa, #b3e5fc);
+      margin: 0;
+      padding: 10px;
+      color: #01579b;
+    }
+
+    h1 {
+      font-size: 1.8em;
+      color: #0288d1;
+      margin-bottom: 15px;
+    }
+
+    /* Button Styling */
+    .buttons {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .digit-button, .random-button {
+      background-color: #81d4fa;
+      color: #01579b;
+      border: none;
+      border-radius: 50px;
+      padding: 8px 15px;
+      margin: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s ease;
+    }
+
+    .digit-button:hover, .random-button:hover {
+      background-color: #4fc3f7;
+    }
+
+    .random-button {
+      background-color: #0277bd;
+      color: white;
+    }
+
+    .random-button:hover {
+      background-color: #ffa726;
+    }
+
+    .generate-button {
+      background-color: #ffb74d;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 20px;
+      margin-top: 15px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s ease;
+    }
+
+    .generate-button:hover {
+      background-color: #0277bd;
+    }
+
+    /* Slider Styling */
+    .sliders {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 0 auto 15px;
+    }
+
+    .slider-container {
+      margin: 5px;
+    }
+
+    .slider {
+      width: 100px;
+      background: #4fc3f7;
+      height: 6px;
+      border-radius: 5px;
+      outline: none;
+      transition: background 0.3s ease;
+    }
+
+    .slider:hover {
+      background: #0288d1;
+    }
+
+    .slider-value {
+      margin-top: 3px;
+      font-size: 12px;
+      color: #01579b;
+    }
+
+    /* Output Section */
+    .output {
+      margin-top: 20px;
+    }
+
+    .output h2 {
+      font-size: 1.4em;
+      color: #01579b;
+      margin-bottom: 10px;
+    }
+
+    .output-image {
+      width: 200px;
+      height: 200px;
+      margin-top: 5px;
+      border: 2px solid #0288d1;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>VAE Digit Generator</h1>
+
+  <div class="buttons">
+    <!-- Random Button -->
+    <button class="random-button" onclick="setRandom()">Set Random Values</button>
+  </div>
+
+  <div class="sliders" id="sliders-container">
+    <!-- Sliders will be dynamically created -->
+  </div>
+
+  <button class="generate-button" onclick="generateDigit()">Generate Digit</button>
+
+  <div class="output" id="output">
+    <img id="output-image" class="output-image" alt="Generated Digit">
+  </div>
+
+  <script>
+    let LATENT_DIM = 2;  // Updated to match latent_dim=2
+    let z = Array(LATENT_DIM).fill(0);
+    const slidersContainer = document.getElementById("sliders-container");
+    const outputImage = document.getElementById("output-image");
+
+    // Generate sliders dynamically based on LATENT_DIM
+    function generateSliders() {
+      slidersContainer.innerHTML = ""; // Clear existing sliders
+      for (let i = 0; i < LATENT_DIM; i++) {
+        const container = document.createElement("div");
+        container.className = "slider-container";
+
+        const slider = document.createElement("input");
+        slider.type = "range";
+        slider.min = -2.5;
+        slider.max = 2.5;
+        slider.step = 0.01;
+        slider.value = 0;
+        slider.className = "slider";
+
+        const valueLabel = document.createElement("div");
+        valueLabel.className = "slider-value";
+        valueLabel.textContent = "0.00";
+
+        slider.addEventListener("input", (e) => {
+          z[i] = parseFloat(e.target.value);
+          valueLabel.textContent = e.target.value;
+        });
+
+        container.appendChild(slider);
+        container.appendChild(valueLabel);
+        slidersContainer.appendChild(container);
+      }
+    }
+
+    // Initialize sliders on page load
+    generateSliders();
+
+    // Set random values for sliders
+    function setRandom() {
+      z = Array.from({ length: LATENT_DIM }, () => Math.random() * 4 - 2);
+      updateSliders();
+    }
+
+    // Update sliders visually
+    function updateSliders() {
+      const sliders = document.querySelectorAll(".slider");
+      const labels = document.querySelectorAll(".slider-value");
+      sliders.forEach((slider, i) => {
+        slider.value = z[i];
+        labels[i].textContent = z[i].toFixed(2);
+      });
+    }
+
+    // Generate digit from server
+    async function generateDigit() {
+      try {
+        const response = await fetch("http://localhost:5000/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ z }),
+        });
+        const data = await response.json();
+        if (data.image) {
+          outputImage.src = `data:image/png;base64,${data.image}`;
+        }
+      } catch (error) {
+        console.error("Error generating digit:", error);
+      }
+    }
+  </script>
+</body>
+</html>

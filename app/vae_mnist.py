@@ -10,7 +10,7 @@ from config_mnist import device, BATCH_SIZE, LEARNING_RATE, latent_dim
 
 
 class VariationalAutoencoder(nn.Module):
-    def __init__(self):
+    def __init__(self, latent_dim=20):
         super(VariationalAutoencoder, self).__init__()
 
         # Encoder part
@@ -26,7 +26,7 @@ class VariationalAutoencoder(nn.Module):
 
         # Decoder part
         self.decoder = nn.Sequential(
-            nn.Linear(20, 400),
+            nn.Linear(latent_dim, 400),
             nn.ReLU(),
             nn.Linear(400, 784),
             nn.Sigmoid()  # Ensuring output is between 0 and 1

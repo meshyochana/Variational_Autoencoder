@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>VAE Digit Generator (3D + Sliders + Means)</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
+  <style>
+    /* Overall page style, similar to web_app_2 */
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #eee;
+      font-family: 'Open Sans', sans-serif;
+      text-align: center;
+    }
+
+    /* Centered container with a max width so content doesn't overflow */
+    .container {
+      display: block;
+      background-color: #fff;
+      padding: 20px;
+      margin: 30px auto;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      max-width: 900px;
+    }
+
+    h1 {
+      margin-top: 0;
+      color: #0288d1;
+    }
+
+    /* Main flex container: plot on the left, controls on the right */
+    .main-flex {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 20px;
+    }
+
+    /* Plot area */
+    .plot-area {
+      flex: 1 1 auto;
+    }
+
+    #plot {
+      width: 500px;
+      height: 500px;
+      margin: 0 auto;
+      border: 2px solid #0288d1;
+      border-radius: 5px;
+      background-color: #fff;
+    }
+
+    /* Controls area on the right */
+    .controls-area {
+      flex: 0 0 300px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .controls-area h3 {
+      margin: 10px 0;
+    }
+
+    /* Slider groups stacked vertically */
+    .slider-group {
+      display: flex;
+      align-items: center;
+      margin: 10px 0;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .slider-group label {
+      margin-right: 5px;
+      width: 20px;
+      text-align: right;
+    }
+
+    .slider-group input[type="range"] {
+      width: 150px;
+      margin: 0 8px;
+    }
+
+    .slider-group span {
+      display: inline-block;
+      width: 30px;
+      text-align: left;
+    }
+
+    /* Generate and digit buttons */
+    .generate-button, .digit-button {
+      background-color: #ffb74d;
+      color: #fff;
+      border: 1px solid #999;
+      border-radius: 4px;
+      padding: 8px 16px;
+      margin-top: 10px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .generate-button:hover, .digit-button:hover {
+      background-color: #f29100;
+    }
+
+    /* Container for the digit buttons */
+    .digit-buttons {
+      margin-top: 10px;
+    }
+    .digit-button {
+      margin: 5px;
+    }
+
+    /* Output image styling */
+    .output-image {
+      width: 200px;
+      height: 200px;
+      margin-top: 15px;
+      border: 2px solid #0288d1;
+      border-radius: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>VAE Digit Generator (3D)</h1>
+    <div class="main-flex">
+      <!-- Left: 3D Plot -->
+      <div class="plot-area">
+        <div id="plot"></div>
+      </div>
+
+      <!-- Right: Sliders, Means Buttons, Generate, Output -->
+      <div class="controls-area">
+        <h3>Latent Vector</h3>
+
+        <!-- Sliders for x, y, z -->
+        <div class="slider-group">
+          <label for="x-input">x:</label>
+          <input 
+            id="x-input" 
+            type="range" 
+            min="-3" 
+            max="3" 
+            step="0.1" 
+            value="0"
+            oninput="updateUserPoint()"
+          />
+          <span id="x-value">0</span>
+        </div>
+
+        <div class="slider-group">
+          <label for="y-input">y:</label>
+          <input 
+            id="y-input" 
+            type="range" 
+            min="-3" 
+            max="3" 
+            step="0.1" 
+            value="0"
+            oninput="updateUserPoint()"
+          />
+          <span id="y-value">0</span>
+        </div>
+
+        <div class="slider-group">
+          <label for="z-input">z:</label>
+          <input 
+            id="z-input" 
+            type="range" 
+            min="-3" 
+            max="3" 
+            step="0.1" 
+            value="0"
+            oninput="updateUserPoint()"
+          />
+          <span id="z-value">0</span>
+        </div>
+
+        <!-- Digit Buttons -->
+        <div class="digit-buttons" id="digit-buttons-container">
+          <!-- We'll dynamically fill this after computing means -->
+        </div>
+
+        <!-- Generate Digit -->
+        <button class="generate-button" onclick="generateDigit()">Generate Digit</button>
+        <img id="output-image" class="output-image" alt="Generated Digit">
+      </div>
+    </div>
+  </div>
+
+  <!-- Include Plotly JS -->
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+  <script>
+    let chosenPoint = [0, 0, 0];
+    let userPointTraceIndex = null;
+    const means = {}; // We'll store the mean vector for each digit
+
+    // Predefined colors for digits 0..9 (same as web_app_2 or similar)
+    const digitColors = [
+      "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+      "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"
+    ];
+
+    // 1. Load data for the 3D scatter plot
+    fetch("http://localhost:5000/static/latent_digits.json")
+      .then(response => response.json())
+      .then(data => {
+        // 1a. Compute the mean for each digit
+        for (let digit in data) {
+          const coords = data[digit];
+          let sumX = 0, sumY = 0, sumZ = 0;
+          coords.forEach(([x, y, z]) => {
+            sumX += x;
+            sumY += y;
+            sumZ += z;
+          });
+          const n = coords.length || 1; // avoid divide by zero
+          means[digit] = [sumX / n, sumY / n, sumZ / n];
+        }
+
+        // 1b. Build the digit traces
+        const traces = [];
+        let digitIndex = 0;
+        for (let digit in data) {
+          const coords = data[digit].slice(0, 200);
+          const xVals = coords.map(p => p[0]);
+          const yVals = coords.map(p => p[1]);
+          const zVals = coords.map(p => p[2]);
+
+          traces.push({
+            x: xVals,
+            y: yVals,
+            z: zVals,
+            mode: 'markers',
+            type: 'scatter3d',
+            marker: {
+              size: 3,
+              color: digitColors[digitIndex % digitColors.length], // color per digit
+              opacity: 0.4
+            },
+            name: `Digit ${digit}`
+          });
+
+          digitIndex++;
+        }
+
+        // 1c. Single "user point" trace (large & red)
+        userPointTraceIndex = traces.length;
+        traces.push({
+          x: [0], y: [0], z: [0],
+          mode: 'markers',
+          type: 'scatter3d',
+          marker: {
+            size: 12,
+            color: 'red',
+            symbol: 'cross'
+          },
+          name: 'User Point'
+        });
+
+        // 2. Plotly layout
+        const layout = {
+          scene: {
+            xaxis: { title: "X" },
+            yaxis: { title: "Y" },
+            zaxis: { title: "Z" }
+          },
+          showlegend: false  // Hide the legend
+        };
+
+        // 3. Render
+        Plotly.newPlot("plot", traces, layout);
+
+        // 4. Create digit buttons to set user point to each mean
+        createDigitButtons(Object.keys(data));
+      })
+      .catch(err => {
+        console.error("Error loading latent digits data:", err);
+      });
+
+    // Create a row of buttons for each digit, using the means we computed
+    function createDigitButtons(digitsArray) {
+      const container = document.getElementById("digit-buttons-container");
+      container.innerHTML = ""; // Clear existing
+
+      digitsArray.forEach((digit, idx) => {
+        const btn = document.createElement("button");
+        btn.textContent = digit;            // label with digit
+        btn.className = "digit-button";
+        btn.style.backgroundColor = digitColors[idx % digitColors.length];
+        btn.onclick = () => setMeanPoint(digit);
+        container.appendChild(btn);
+      });
+    }
+
+    // Set the user point to the mean of the chosen digit
+    function setMeanPoint(digit) {
+      const [mx, my, mz] = means[digit] || [0,0,0];
+      chosenPoint = [mx, my, mz];
+
+      // Update sliders & text
+      document.getElementById("x-input").value = mx;
+      document.getElementById("y-input").value = my;
+      document.getElementById("z-input").value = mz;
+      document.getElementById("x-value").textContent = mx.toFixed(1);
+      document.getElementById("y-value").textContent = my.toFixed(1);
+      document.getElementById("z-value").textContent = mz.toFixed(1);
+
+      // Move the red user point in the Plotly chart
+      Plotly.restyle("plot", {
+        x: [[mx]],
+        y: [[my]],
+        z: [[mz]]
+      }, [userPointTraceIndex]);
+    }
+
+    // Called whenever the user moves a slider
+    function updateUserPoint() {
+      const xVal = parseFloat(document.getElementById('x-input').value);
+      const yVal = parseFloat(document.getElementById('y-input').value);
+      const zVal = parseFloat(document.getElementById('z-input').value);
+
+      document.getElementById('x-value').textContent = xVal.toFixed(1);
+      document.getElementById('y-value').textContent = yVal.toFixed(1);
+      document.getElementById('z-value').textContent = zVal.toFixed(1);
+
+      chosenPoint = [xVal, yVal, zVal];
+
+      // Update the user point trace
+      Plotly.restyle('plot', {
+        x: [[xVal]],
+        y: [[yVal]],
+        z: [[zVal]]
+      }, [userPointTraceIndex]);
+    }
+
+    // Sends the chosen (x,y,z) to Flask to generate a digit
+    async function generateDigit() {
+      console.log("Generating digit from latent:", chosenPoint);
+      try {
+        const response = await fetch("http://localhost:5000/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ z: chosenPoint })
+        });
+        const data = await response.json();
+
+        if (data.image) {
+          const outputImage = document.getElementById("output-image");
+          outputImage.src = `data:image/png;base64,${data.image}`;
+          outputImage.style.display = "block";
+        }
+      } catch (error) {
+        console.error("Error generating digit:", error);
+      }
+    }
+  </script>
+</body>
+</html>

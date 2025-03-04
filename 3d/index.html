@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Scatter Plot of Latent Digits</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+</head>
+<body>
+    <h2>3D Scatter Plot of Latent Digits</h2>
+    <div id="plot" style="width: 1200px; height: 800px;"></div>
+    
+    <script>
+        // Load JSON data
+        fetch("latent_digits.json", { mode: 'cors' })
+            .then(response => response.json())
+            .then(data => {
+                let traces = [];
+                
+                Object.keys(data).forEach(digit => {
+                    let points = data[digit].slice(0, 200); // Select only 200 points
+                    let x = points.map(p => p[0]);
+                    let y = points.map(p => p[1]);
+                    let z = points.map(p => p[2]); // Assuming data contains 3D points
+                    
+                    traces.push({
+                        x: x,
+                        y: y,
+                        z: z,
+                        mode: 'markers',
+                        type: 'scatter3d',
+                        marker: { size: 3 },
+                        name: `Digit ${digit}`
+                    });
+                });
+                
+                let layout = {
+                    title: "Interactive 3D Scatter Plot of Latent Digits",
+                    scene: {
+                        xaxis: { title: "X" },
+                        yaxis: { title: "Y" },
+                        zaxis: { title: "Z" }
+                    }
+                };
+                
+                Plotly.newPlot("plot", traces, layout);
+            });
+    </script>
+</body>
+</html>
